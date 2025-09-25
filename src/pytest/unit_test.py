@@ -5,7 +5,7 @@ Module to implement unit tests
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..')) # required path to access lib
-from src.tools.preprocessing import handle_missing_vals
+from src.tools.preprocessing import handle_missing_vals, check_conform_values
 
 # Test framework
 import unittest
@@ -27,6 +27,18 @@ class TestHandleMissing(unittest.TestCase):
         df.at[0, "3PA"] = None
         with self.assertRaises(NotImplementedError):
             handle_missing_vals(df)
+
+class TestCoherentVals(unittest.TestCase):
+
+    def test_valid_df(self):
+        df = pd.read_csv(path_data)
+        self.assertEqual(check_conform_values(df),True)
+    
+    def test_invalid_df(self):
+        df = pd.read_csv(path_data)
+        df.at[2, "3P Made"] = 2 * df.at[2, "3PA"]
+        with self.assertRaises(AssertionError):
+            check_conform_values(df)
 
 if __name__=="__main__":
     unittest.main()
