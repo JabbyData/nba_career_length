@@ -6,6 +6,9 @@ Module implementing functions to preprocess data
 ## Data manipulation
 import pandas as pd
 
+## Format
+from typing import List
+
 def handle_missing_vals(df: pd.DataFrame) -> pd.DataFrame:
     """
     Handles missing values in the provided DataFrame for specific columns.
@@ -72,3 +75,28 @@ def check_conform_values(df: pd.DataFrame) -> bool:
     assert len(df[df["FGM"]>df["FGA"]]) == 0, "Incoherent values in FG : player with more shoot succeeded than attempted"
     assert len(df[df["FTM"]>df["FTA"]]) == 0, "Incoherent values in FT : player with more shoot succeeded than attempted"
     return True
+
+def preprocess(df: pd.DataFrame, drop_col: List[str], target: str, mode: str) -> pd.DataFrame:
+    # Dropping irrelevant feature
+    df = df.drop(columns=drop_col)
+
+    # Handling missing values
+    df = handle_missing_vals(df)
+
+    # Remove normal / quasi duplicates
+    l1 = len(df)
+    df = df.drop_duplicates()
+    l2 = len(df)
+    print("Removing {} duplicates".format(l1 - l2))
+    mask_duplicated = df.duplicated(subset=df.columns.difference([target]), keep=False)
+    df = df[~mask_duplicated]
+    l1 = len(df)
+    print("Removing {} quasi-duplicates".format(l2 - l1))
+    mask_duplicated = df.duplicated(subset=df.columns.difference([target]), keep=False)
+    assert not mask_duplicated.any().any(), "Duplicates remaining"
+
+    if mode == "cap":
+        # Cap outliers
+        df = cap_outliers(df,target)
+    
+    return df

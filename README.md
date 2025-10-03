@@ -80,7 +80,9 @@ De tous les algortihmes étudiés, celui qui retient le plus mon attention est *
 5) Cet algorithme présente les meilleurs résultats (score fbeta) en validation par rapport aux autres modèles (voir [comparaison](src/comparison.ipynb))
 
 # Déploiement
-Le fichier [pipeline](src/pipeline.py) contient les fonctions nécessaires à l'entrainement et au déploiement du modèle choisi dans un service web. Il remplace le fichier test.py (factorisation des fonctionnalités).
+Le fichier [train](src/train.py) contient les fonctions nécessaires à l'entrainement du modèle choisi. <br>
+Le fichier [test](src/test.py) teste en particulier la performance du modèle choisi. Je décide de changer la fonction de scoring pour y inclure le **score Fbeta** afin de rester cohérent avec l'analyse présentée ci-dessus. De plus je pense qu'afin de tester un modèle de manière plus équitable les sets d'entrainement et de test doivent posséder des **proportions équivalentes** vis à vis des **classes cibles**. <br>
+Les deux fichiers ont besoin de connaitre certaines **configurations** vis à vis des modèles, localisées dans le fichier json [run_configs](src/run_configs.json). La partie "train" est à remplir manuellement, le script de training remplit automatiquement la partie "test".
 
 
 # Amélioration

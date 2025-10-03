@@ -19,7 +19,7 @@ import json
 
 ## Utils
 from tools.parse import init_parser
-from tools.preprocessing import handle_missing_vals, cap_outliers
+from tools.preprocessing import handle_missing_vals, cap_outliers, preprocess
 import joblib
 
 def main(run_config_path: str, model_config_folder_path: str, model_name: str):
@@ -27,33 +27,14 @@ def main(run_config_path: str, model_config_folder_path: str, model_name: str):
     with open(run_config_path) as f:
         args = json.load(f)["train"]
 
-    # Preprocess data
     df = pd.read_csv(args["train_data_path"])
-    
-    ## Drop irrelevant features
-    df = df.drop(columns=args["drop_col"])
-    
-    ## Missing values
-    df = handle_missing_vals(df)
 
-    ## Duplicates
-    l1 = len(df)
-    df = df.drop_duplicates()
-    l2 = len(df)
-    print("Removing {} duplicates".format(l1 - l2))
+    target = args ["target"]
+    if model_name == "lr":
+        mode = "cap"
 
-    ## Quasi duplicates
-    target = args["target"]
-    mask_duplicated = df.duplicated(subset=df.columns.difference([target]), keep=False)
-    df = df[~mask_duplicated]
-    l1 = len(df)
-    print("Removing {} quasi-duplicates".format(l2 - l1))
-
-    mask_duplicated = df.duplicated(subset=df.columns.difference([target]), keep=False)
-    assert not mask_duplicated.any().any(), "Duplicates remaining"
-
-    ## Cap outliers
-    df = cap_outliers(df,target)
+    # Preprocess data
+    df = preprocess(df,args["drop_col"],target, mode)
 
     # Train model using json best params 
     model_configs_path = os.path.join(model_config_folder_path,model_name+".json")
@@ -97,11 +78,21 @@ def main(run_config_path: str, model_config_folder_path: str, model_name: str):
     joblib.dump(pipeline, model_path)  # Joblib good format to save sklearn pipeline
     print(f"Model pipeline saved to {model_path}")
 
+    # Save test configs
+    run_configs_test = args
+    run_configs_test["model_name"] = model_name
+    
+    run_configs = {
+        "train": args,
+        "test": run_configs_test,
+    }
+
+    with open(run_config_path, "w") as f:
+        json.dump(run_configs, f, indent=4)
+
 
 if __name__=="__main__":
     run_config_path = os.path.join(os.getcwd(),"src","run_configs.json")
     model_config_folder_path = os.path.join(os.getcwd(),"src","models","params")
     model_name = "lr"
     main(run_config_path,model_config_folder_path,model_name)
-
-
