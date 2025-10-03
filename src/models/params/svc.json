@@ -1,0 +1,10 @@
+{
+    "C": 0.7161221742351076,
+    "kernel": "linear",
+    "class_weight": "balanced",
+    "random_state": 42,
+    "cv_folds": 4,
+    "beta": 0.5,
+    "scaler_type": "robust",
+    "pca_level": null
+}

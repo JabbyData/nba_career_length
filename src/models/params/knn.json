@@ -1,0 +1,9 @@
+{
+    "cv_folds": 4,
+    "beta": 0.5,
+    "weights": "uniform",
+    "seed": 42,
+    "n_neighbors": 46,
+    "pca_level": null,
+    "scaler_type": "robust"
+}

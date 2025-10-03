@@ -1,0 +1,12 @@
+{
+    "penalty": "l2",
+    "random_state": 42,
+    "cv_folds": 4,
+    "solver": "liblinear",
+    "class_weight": "balanced",
+    "max_iter": 10000,
+    "scaler_type": "robust",
+    "pca_level": 0.99,
+    "beta": 0.5,
+    "C": 0.07696632239717295
+}

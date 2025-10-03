@@ -1,0 +1,12 @@
+{
+    "n_estimators": 46,
+    "min_samples_split": 26,
+    "min_impurity_decrease": 7.317475848464403e-05,
+    "min_samples_leaf": 13,
+    "max_depth": 18,
+    "ccp_alpha": 0.003244001126881171,
+    "random_state": 42,
+    "class_weight": "balanced_subsample",
+    "beta": 0.5,
+    "cv_folds": 4
+}

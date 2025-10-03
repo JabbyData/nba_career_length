@@ -34,6 +34,21 @@ def handle_missing_vals(df: pd.DataFrame) -> pd.DataFrame:
             raise NotImplementedError(f"Missing values for {null_column} is not supported")
     return df
 
+def cap_outliers(df: pd.DataFrame, target) -> pd.DataFrame:
+    numeric_cols = df.select_dtypes(include=[int, float]).columns.difference([target])
+
+    for col in numeric_cols:
+        q1 = df[col].quantile(0.25)
+        q3 = df[col].quantile(0.75)
+        iqr = q3 - q1
+        lower_bound = q3 + 1.5 * iqr
+        upper_bound = q1 - 1.5 * iqr
+        mask_capped = (df[col] < lower_bound) | (df[col] > upper_bound)
+        df[f"{col}_capped"] = mask_capped.astype(int)
+        df[col] = df[col].clip(lower=lower_bound,upper=upper_bound)
+    
+    return df
+
 def check_conform_values(df: pd.DataFrame) -> bool:
     """
     Checks for data consistency in basketball statistics DataFrame.

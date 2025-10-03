@@ -9,6 +9,8 @@ from sklearn.metrics import recall_score
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 
+
+
 def score_classifier(dataset,classifier,labels):
 
     """
@@ -35,6 +37,12 @@ def score_classifier(dataset,classifier,labels):
     print(confusion_mat)
     print(recall)
 
+
+if __name__=="__main__":
+    # Load data
+    
+
+    # 
 
 # Load dataset
 df = pd.read_csv(".\\nba_logreg.csv")
