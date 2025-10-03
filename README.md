@@ -80,8 +80,8 @@ De tous les algortihmes étudiés, celui qui retient le plus mon attention est *
 5) Cet algorithme présente les meilleurs résultats (score fbeta) en validation par rapport aux autres modèles (voir [comparaison](src/comparison.ipynb))
 
 # Déploiement
+Le fichier [pipeline](src/pipeline.py) contient les fonctions nécessaires à l'entrainement et au déploiement du modèle choisi dans un service web. Il remplace le fichier test.py (factorisation des fonctionnalités).
 
-**TODO** : parler des test
 
 # Amélioration
 **TODO**  : présenter amélioration possibles

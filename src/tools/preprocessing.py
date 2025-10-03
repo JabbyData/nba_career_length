@@ -23,6 +23,7 @@ def handle_missing_vals(df: pd.DataFrame) -> pd.DataFrame:
     Raises:
             NotImplementedError: If missing values are found in columns other than "3P%".
     """
+    print("Handling missing values ...")
     null_columns = df.columns[df.isnull().any()].to_list()
     for null_column in null_columns:
         if null_column == "3P%":
