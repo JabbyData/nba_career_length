@@ -76,14 +76,7 @@ def check_conform_values(df: pd.DataFrame) -> bool:
     assert len(df[df["FTM"]>df["FTA"]]) == 0, "Incoherent values in FT : player with more shoot succeeded than attempted"
     return True
 
-def preprocess(df: pd.DataFrame, drop_col: List[str], target: str, mode: str) -> pd.DataFrame:
-    # Dropping irrelevant feature
-    df = df.drop(columns=drop_col)
-
-    # Handling missing values
-    df = handle_missing_vals(df)
-
-    # Remove normal / quasi duplicates
+def handle_duplicates(df: pd.DataFrame, target: str):
     l1 = len(df)
     df = df.drop_duplicates()
     l2 = len(df)
@@ -94,6 +87,18 @@ def preprocess(df: pd.DataFrame, drop_col: List[str], target: str, mode: str) ->
     print("Removing {} quasi-duplicates".format(l2 - l1))
     mask_duplicated = df.duplicated(subset=df.columns.difference([target]), keep=False)
     assert not mask_duplicated.any().any(), "Duplicates remaining"
+
+    return df
+
+def preprocess(df: pd.DataFrame, drop_col: List[str], target: str, mode: str) -> pd.DataFrame:
+    # Dropping irrelevant feature
+    df = df.drop(columns=drop_col)
+
+    # Handling missing values
+    df = handle_missing_vals(df)
+
+    # Remove normal / quasi duplicates
+    df = handle_duplicates(df, target)
 
     if mode == "cap":
         # Cap outliers

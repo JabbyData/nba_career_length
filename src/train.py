@@ -12,14 +12,14 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
+from models.outlier_capper import Capper
 
 ## System & Files
 import os
 import json
 
 ## Utils
-from tools.parse import init_parser
-from tools.preprocessing import handle_missing_vals, cap_outliers, preprocess
+from tools.preprocessing import handle_duplicates, handle_missing_vals
 import joblib
 
 def main(run_config_path: str, model_config_folder_path: str, model_name: str):
@@ -30,11 +30,15 @@ def main(run_config_path: str, model_config_folder_path: str, model_name: str):
     df = pd.read_csv(args["train_data_path"])
 
     target = args ["target"]
-    if model_name == "lr":
-        mode = "cap"
 
-    # Preprocess data
-    df = preprocess(df,args["drop_col"],target, mode)
+    # Remove irrelevant column
+    df = df.drop(columns=args["drop_col"])
+
+    # Handling missing values
+    df = handle_missing_vals(df)
+
+    # Remove normal / quasi duplicates
+    df = handle_duplicates(df, target)
 
     # Train model using json best params 
     model_configs_path = os.path.join(model_config_folder_path,model_name+".json")
@@ -42,6 +46,9 @@ def main(run_config_path: str, model_config_folder_path: str, model_name: str):
         model_configs = json.load(f)
 
     steps = []
+    if model_configs["cap_factor"] is not None:
+        capper = Capper(model_configs["cap_factor"])
+        steps.append(('capper',capper))
 
     if model_configs["scaler_type"] == "robust":
         scaler = RobustScaler()

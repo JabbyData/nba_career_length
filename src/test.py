@@ -5,7 +5,7 @@ Module implementing complete pipeline to test model.
 # Dependencies
 ## Data manipulation
 import pandas as pd
-from tools.preprocessing import preprocess
+from tools.preprocessing import handle_duplicates, handle_missing_vals
 
 ## Linear Algebra
 import numpy as np
@@ -76,8 +76,14 @@ if __name__=="__main__":
     pipeline_path = os.path.join(args["weights_folder_path"],args["model_name"]+".joblib")
     pipeline = joblib.load(pipeline_path)
 
-    # Preprocess data
-    df = preprocess(df, args["drop_col"], target, mode)
+    # Remove irrelevant column
+    df = df.drop(columns=args["drop_col"])
+
+    # Handling missing values
+    df = handle_missing_vals(df)
+
+    # Remove normal / quasi duplicates
+    df = handle_duplicates(df, target)
 
     X = df.drop(columns=target).values
     y = df[target].values

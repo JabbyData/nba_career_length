@@ -1,4 +1,6 @@
 **.pyc
 .vscode
 **.sqlite3
+**filtered.csv
+**capped.csv
 

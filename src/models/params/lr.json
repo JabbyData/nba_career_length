@@ -1,5 +1,5 @@
 {
-    "penalty": "l2",
+    "penalty": "l1",
     "random_state": 42,
     "cv_folds": 4,
     "solver": "liblinear",
@@ -8,5 +8,6 @@
     "scaler_type": "robust",
     "pca_level": 0.99,
     "beta": 0.5,
-    "C": 0.07696632239717295
+    "cap_factor": 1.5,
+    "C": 0.31025914247214437
 }

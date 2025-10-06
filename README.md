@@ -39,12 +39,14 @@ Le dataset étudié est **petit** (~1340 observations) et **bruité** (présence
 Les principales étapes sont : <br>
 1. **Nettoyage des données** : Suppression des doublons, gestion des valeurs manquantes et correction des incohérences.
 2. **Analyse univariée** : Étude des distributions de chaque variable (statistiques descriptives, histogrammes).
-3. **Détection et traitement des outliers** : Identification des valeurs extrêmes et choix d'une stratégie (suppression, conservation ou capping).
+3. **Détection et traitement des outliers** : Identification des valeurs extrêmes et choix d'une stratégie (suppression, conservation ou capping). <br>
+J'ai remarqué en particulier que l'utilisation de variables supplémentaires gardant trace des cappings effectués dégrade les performances des algorithmes (surtout ceux utilisant l'analyse de composantes principales, je pense que cela est dû au fait que ces variables catégoriques n'indiquent **pas quantitativement** l'écart entre la valeur tronquée et la valkeur limite, rendant difficile pour les modèles tels que la régression logistique de quantifier son impact sur la valeur cible).
 4. **Analyse bivariée** : Exploration des relations entre variables (corrélations, visualisations).
 5. **Sélection de variables** : Identification des variables pertinentes pour la modélisation.
 6. **Préparation des jeux de données** : Création de versions filtrées et nivelées du dataset pour les étapes suivantes.
 
-A l'issue de cette analyse, 2 nouvelles version du dataset donné sont produites : [nba_filtered.csv](src/data/nba_filtered.csv) qui contient les données filtrées avec **outliers** et [nba_filtered_capped.csv](src/data/nba_filtered_capped.csv) pour lequel les entrées correspondantes sont **nivelées** (ou limitées en valeur, utile pour les modèles sensibles aux outliers).
+A l'issue de cette analyse, 2 nouvelles version du dataset donné sont produites : [nba_filtered.csv](src/data/nba_filtered.csv) qui contient les données filtrées avec **outliers** et [nba_filtered_capped.csv](src/data/nba_filtered_capped.csv) pour lequel les entrées correspondantes sont **nivelées** (ou limitées en valeur, utile pour les modèles sensibles aux outliers). <br>
+Je choisis de laisser les labels de capping dans un dataset car cela pourrait être utile pour une évolution future du projet. De plus un exemple de code (lignes en commentaire) au sein de la classe `LREstimator` est laissé si besoin est d'utiliser cette extension.
 
 # Modèle
 Une fois les données nettoyées, j'ai réfléchi à quelques modèles qui pourraient bien être adapté à ces dernières. Il faut prendre en compte que le **dataset est petit** et que certaines **variables restent très corrélées** (sans pour autant introduire de la redondance).
@@ -59,12 +61,13 @@ Voici une table récapitulative des modèles choisis :
 
 Avec $n$ le nombre d'**observations** dans le set d'entraînement, $d$ le nombre de **features** et $n_{trees}$ le nombre d'**arbres**. <br>
 Chaque est associé à un notebook détaillant son analyse. Le répertoire [models](src/models/) contient une implémentation détaillées de chaque modèle (ce qui permet plus de flexibilité vis à vis des fonctions à développer). <br>
-Ces modèles sont parfois combinés avec une analyse de composantes principales afin de simplifier les données étudiées et améliorer (ou non) la performance des modèles en se focalisant sur l'information essentielle.
+Ces modèles sont parfois combinés avec une analyse de composantes principales afin de simplifier les données étudiées et améliorer (ou non) la performance des modèles en se focalisant sur l'information essentielle. <br>
 
 # Sélection
 Afin de choisir les **hyper-paramètres**, d'observer en détail les **performances** d'apprentissage de chaque modèle et de choisir le meilleur pour notre set de donnée, j'ai développé la stratégie suivante : <br>
 
-0. **Reproducibilité** : une **seed** est fixée afin que chaque modèle travaille dans les mêmes conditions de calcul et reproduise les mêmes résultats sur chaque itération identique.
+0. **Reproducibilité** : une **seed** est fixée afin que chaque modèle travaille dans les mêmes conditions de calcul et reproduise les mêmes résultats sur chaque itération identique. Cela permet en particulier de comparer de manière équitable (mêmes conditions de calcul) les différents modèles utilisés. <br>
+**Note** : Pour le code de régression logistique, `n_jobs` est fixé à 1 pour assurer la reproducibilité des résultats.
 1. **Séparation** : 80% du set initial est utilisé pour entraîner les modèles et 20% pour le test final. Les splits sont **stratifiés** afin de tenir compte de la différence en proportion des classes cibles. Lors de la **validation croisée**, j'assure que la taille des sets de validation est la même que celle du test (assure une bonne généralisation des résultats).
 2. **Fine-tuning** : Chaque classe (associée à un modèle) implémente une méthode d'entrainement et une méthode de validation croisée qui retourne les scores associés (permet de voir la statibilité du modèle à travers différents scénarios). <br>
 De plus pour les modèles nécéssitants du fine-tuning d'hyper-paramètres, j'ai choisi le framework [OPTUNA](https://optuna.org/), qui implémente un algorithme d'**optimisation Bayésienne**. Cela permet de définir des intervales spécifiques (choisi empiriquement) pour adapter de manière efficace et crédible (intervalles de confiance basé sur des tests d'hyphotèses statistiques) les modèles concernés. <br>
