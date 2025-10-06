@@ -1,16 +1,20 @@
 """
-Module implementing API
+Module implementing API predicting if player worth investing
 """
+# Dependencies
 from fastapi import FastAPI
 from pydantic import BaseModel
 import joblib
 import numpy as np
 import os
 import json
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__))) # adding working directory to python path
 
 class PlayerStats(BaseModel):
     gp: int
     min: float
+    pts: float
     fga: float
     fg_percent: float
     three_pa: float
@@ -36,6 +40,7 @@ async def predict(player_stats: PlayerStats):
     features = np.array([
         stats_dict['gp'],
         stats_dict['min'],
+        stats_dict['pts'],
         stats_dict['fga'],
         stats_dict['fg_percent'],
         stats_dict['three_pa'],
@@ -57,6 +62,26 @@ async def predict(player_stats: PlayerStats):
         pipeline = joblib.load(weights_path)
 
     prediction = pipeline.predict(features)
-    print(prediction)
-    # return {"prediction": prediction}
+    prediction_proba = pipeline.predict_proba(features)
+
+    prediction_map = {
+        0: "Career < 5Yrs",
+        1: "Career >= 5Yrs"
+    }
+
+    res = {
+        "prediction": prediction_map[int(prediction[0])],
+        "prediction_probability": {
+            "Career < 5Yrs": float(prediction_proba[0][0]),
+            "Career >= 5Yrs": float(prediction_proba[0][1])
+        }
+    }
+
+    return {
+        "prediction": prediction_map[int(prediction[0])],
+        "prediction_probability": {
+            "Career < 5Yrs": float(prediction_proba[0][0]),
+            "Career >= 5Yrs": float(prediction_proba[0][1])
+        }
+    }
 

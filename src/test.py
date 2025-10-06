@@ -90,7 +90,7 @@ if __name__=="__main__":
 
     scores = score_classifier(X, pipeline, y, args["beta"])
 
-    # Prepare metrics table
+    # Display metrics
     metrics_table = [
         ["Precision", scores["precision"]],
         ["Recall", scores["recall"]],
@@ -99,12 +99,12 @@ if __name__=="__main__":
     print("Metrics (average):")
     print(tabulate(metrics_table, headers=["Metric", "Value"], floatfmt=".4f"))
 
-    # Prepare confusion matrix table
+    # Display Confusion matrix
     cm = scores["cm"]
     cm_table = [
-        ["Actual 0", round(cm[0][0],2), round(cm[0][1],2)],
-        ["Actual 1", round(cm[1][0],2), round(cm[1][1],2)]
+        ["False", round(cm[0][0],2), round(cm[0][1],2)],
+        ["True", round(cm[1][0],2), round(cm[1][1],2)]
     ]
     print("\nConfusion Matrix (average):")
-    print(tabulate(cm_table, headers=["", "Predicted 0", "Predicted 1"]))
+    print(tabulate(cm_table, headers=["", "False", "True"]))
 
