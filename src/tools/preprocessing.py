@@ -45,36 +45,13 @@ def cap_outliers(df: pd.DataFrame, target) -> pd.DataFrame:
         q1 = df[col].quantile(0.25)
         q3 = df[col].quantile(0.75)
         iqr = q3 - q1
-        lower_bound = q3 + 1.5 * iqr
-        upper_bound = q1 - 1.5 * iqr
+        upper_bound = q3 + 1.5 * iqr
+        lower_bound = q1 - 1.5 * iqr
         mask_capped = (df[col] < lower_bound) | (df[col] > upper_bound)
         df[f"{col}_capped"] = mask_capped.astype(int)
         df[col] = df[col].clip(lower=lower_bound,upper=upper_bound)
     
     return df
-
-def check_conform_values(df: pd.DataFrame) -> bool:
-    """
-    Checks for data consistency in basketball statistics DataFrame.
-
-    This function asserts that for each player:
-    - The number of 3-point shots made ("3P Made") does not exceed the number of 3-point attempts ("3PA").
-    - The number of field goals made ("FGM") does not exceed the number of field goal attempts ("FGA").
-    - The number of free throws made ("FTM") does not exceed the number of free throw attempts ("FTA").
-
-    Raises:
-        AssertionError: If any player has more made shots than attempted in any category.
-
-    Args:
-        df (pd.DataFrame): DataFrame containing basketball statistics with columns "3P Made", "3PA", "FGM", "FGA", "FTM", "FTA".
-
-    Returns:
-        bool: True if all values are consistent.
-    """
-    assert len(df[df["3P Made"]>df["3PA"]]) == 0, "Incoherent values in 3P : player with more shoot succeeded than attempted"
-    assert len(df[df["FGM"]>df["FGA"]]) == 0, "Incoherent values in FG : player with more shoot succeeded than attempted"
-    assert len(df[df["FTM"]>df["FTA"]]) == 0, "Incoherent values in FT : player with more shoot succeeded than attempted"
-    return True
 
 def handle_duplicates(df: pd.DataFrame, target: str):
     l1 = len(df)

@@ -55,6 +55,16 @@ async def predict(player_stats: PlayerStats):
         stats_dict['tov']
     ]).reshape(1, -1)
 
+    # Values coherency
+    for key, value in stats_dict.items():
+        assert value >= 0, f"Negative value for {key}: {value}"
+    
+    for key in ["fg_percent","three_p_percent","ft_percent"]:
+        assert stats_dict[key] <= 100, f"Incoherent percentage value for {key}: {value}"
+    
+
+    assert stats_dict['oreb'] <= stats_dict['reb'], "More offensive rebounds {} than total rebounds {}".format(stats_dict['oreb'],stats_dict['reb'])
+
     # Load model
     with open(path_run_configs) as f:
         run_configs = json.load(f)["test"]
