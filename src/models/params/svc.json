@@ -1,5 +1,5 @@
 {
-    "C": 0.5105903209394755,
+    "C": 0.7281143040125758,
     "kernel": "linear",
     "class_weight": "balanced",
     "random_state": 42,

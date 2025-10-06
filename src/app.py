@@ -68,15 +68,7 @@ async def predict(player_stats: PlayerStats):
         0: "Career < 5Yrs",
         1: "Career >= 5Yrs"
     }
-
-    res = {
-        "prediction": prediction_map[int(prediction[0])],
-        "prediction_probability": {
-            "Career < 5Yrs": float(prediction_proba[0][0]),
-            "Career >= 5Yrs": float(prediction_proba[0][1])
-        }
-    }
-
+    
     return {
         "prediction": prediction_map[int(prediction[0])],
         "prediction_probability": {

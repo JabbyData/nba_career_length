@@ -12,6 +12,8 @@ Mon rendu s'organise de la façon suivante :
 - [Modèle](#modèle) : Développement de potentiels candidats.
 - [Sélection](#sélection) : Comparaison et choix du modèle à mettre en production.
 - [Déploiement](#web) : Déploiement du modèle dans un service web.
+- [Utilisation](#utilisation) : Cas d'utilisation du repo.
+- [Amélioration](#amélioration) : Futur travail à réaliser.
 
 # Objectifs
 Après analyse du sujet et discussion avec l'équipe de recrutement, j'ai pu identifier les axes pilliers de l'élaboration d'un bon projet data pour répondre à la problématique posée, amenant aux configurations suivantes: <br>
@@ -27,9 +29,21 @@ où $\beta =0.5 < 1$, donnant 2 fois d'importance à la précision qu'au rappel.
 ## 2. Environnement de développement
 Mon analyse simule également les 2 contraintes suivantes : <br>
 a) **Les données sources** : Les seules données accessibles sont les données présentes dans le fichier csv associé au test. Je suppose que celles ci ont été extraites sur ce [site](https://www.basketball-reference.com/). <br>
-b) **L'environnement de développement** : Les ressources physiques se limitent au capacités de calcul d'un ordinateur de bureau personnel (le mien en l'occurence). <br>
+b) **L'environnement de développement** : Les ressources physiques se limitent au capacités de calcul d'un ordinateur de bureau personnel (processeur AMD Ryzen 9900, 32Gb de RAM et GPU GeForce RTX 5060Ti). <br>
+Voici un exemple de comment créer un environnement virtuel pour ce projet en utilisant `miniconda` (Linux) : 
+```shell
+conda create -n nba python=3.11
+conda activate nba
+pip install -r requirements.txt
+```
 
-Suivant cette logique, le contenu du rapport s'oriente vers une **PoC** sur le classifieur désiré. Les modèles étudiés tiennent compte de ces limitations.
+Afin de pouvoir transférer de la donnée via des requête HTTPS (cf communication via l'API avec le serveur local), il est recommandé d'utiliser `curl`, qui peut être installé sous Linux via la commande : 
+
+```shell
+sudo apt install curl
+```
+
+Suivant cette logique, le contenu du rapport s'oriente vers une **PoC** du classifieur désiré. Les modèles étudiés tiennent compte de ces limitations.
 
 ## 3. Mise en production
 **TODO** : DOC MISE EN PROD
@@ -83,10 +97,72 @@ De tous les algortihmes étudiés, celui qui retient le plus mon attention est *
 5) Cet algorithme présente les meilleurs résultats (score fbeta) en validation par rapport aux autres modèles (voir [comparaison](src/comparison.ipynb))
 
 # Déploiement
+## 1. Train / Test
 Le fichier [train](src/train.py) contient les fonctions nécessaires à l'entrainement du modèle choisi. <br>
 Le fichier [test](src/test.py) teste en particulier la performance du modèle choisi. Je décide de changer la fonction de scoring pour y inclure le **score Fbeta** afin de rester cohérent avec l'analyse présentée ci-dessus. De plus je pense qu'afin de tester un modèle de manière plus équitable les sets d'entrainement et de test doivent posséder des **proportions équivalentes** vis à vis des **classes cibles**. <br>
-Les deux fichiers ont besoin de connaitre certaines **configurations** vis à vis des modèles, localisées dans le fichier json [run_configs](src/run_configs.json). La partie "train" est à remplir manuellement, le script de training remplit automatiquement la partie "test".
+Les deux fichiers ont besoin de connaitre certaines **configurations** vis à vis des modèles, localisées dans le fichier json [run_configs](src/run_configs.json). La partie "train" est à remplir manuellement, le script de training remplit automatiquement la partie "test". <br>
 
+## 2. Conteneurisation
+
+
+## 3. API
+Le modèle entraîné est déployé dans un service web (local) à l'aide de la librairie `FastAPI` (format API REST). Le fichier [app](src/app.py) contient le détail du développement de l'API. Pour faire une requête sur un joueur, il suffit de lancer les commandes suivantes : 
+```Shell
+fastapi run src/app.py # launch API
+curl -X 'POST' \
+  'http://127.0.0.1:8000/predict/' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "gp": 0,
+  "min": 0,
+  "pts": 0,
+  "fga": 0,
+  "fg_percent": 0,
+  "three_pa": 0,
+  "three_p_percent": 0,
+  "fta": 0,
+  "ft_percent": 0,
+  "oreb": 0,
+  "reb": 0,
+  "ast": 0,
+  "stl": 0,
+  "blk": 0,
+  "tov": 0
+}' # Remplacer les '0' par les valeurs souhaitées.
+```
+
+Voici la signification de chaque clé attendue dans la requête JSON pour la prédiction (Les valeurs sont en moyenne par match, à l'exception de `gp` qui comptabilise le nombre total de matchs joués) :
+
+- **gp** : Nombre de matchs joués (Games Played)
+- **min** : Minutes jouées au total
+- **pts** : Points marqués au total
+- **fga** : Nombre de tirs tentés (Field Goals Attempted)
+- **fg_percent** : Pourcentage de réussite aux tirs (Field Goal %)
+- **three_pa** : Nombre de tirs à 3 points tentés (Three Point Attempts)
+- **three_p_percent** : Pourcentage de réussite à 3 points (Three Point %)
+- **fta** : Nombre de lancers francs tentés (Free Throws Attempted)
+- **ft_percent** : Pourcentage de réussite aux lancers francs (Free Throw %)
+- **oreb** : Rebonds offensifs (Offensive Rebounds)
+- **reb** : Rebonds totaux (Total Rebounds)
+- **ast** : Passes décisives (Assists)
+- **stl** : Interceptions (Steals)
+- **blk** : Contres (Blocks)
+- **tov** : Balles perdues (Turnovers)
+
+# Utilisation
+Le projet est prêt pour prouver son fonctionnement (modèle déjà choisi,entraîné, ...). <br>
+Cette section détaille un cas d'utilisation de ce répertoire (pour le dataset fourni avec le sujet) si l'utilisateur souhaite rentrer plus en détail dans la construction du modèle: <br>
+### 1. Analyse des données
+Lancer le jupyter notebook [analysis.ipynb](src/analysis.ipynb) afin de traiter le dataset en entrée et générer les 2 nouveaux datasets associés (filtrés et/ou cappés).
+### 2. Analyse des composantes principales
+Lancer le jupyter notebook [pca.ipynb](src/pca.ipynb) afin d'analyser les variables à intégrer ou non dans la pipeline.
+### 3. Fine-tuning
+Les fichiers [knn.ipynb](src/knn.ipynb), [logreg.ipynb](src/logreg.ipynb), [svc.ipynb](src/svc.ipynb) et [random_forest.ipynb](src/random_forest.ipynb) sont à lancer afin de sélectionner les meilleur configurations et à comparer **ensuite** à l'aide du fichier [comparison.ipynb](src/comparison.ipynb).
+### 4. Training / Testing
+Exécuter le script [train.py](src/train.py) (penser à adapter le fichier [run_configs](src/run_configs.json) en fonction du modèle choisi) afin d'entraîner l'algorithm sélectionné. Le fichier [test.py](src/test.py) peut également être lancé pour en tester les performances.
+### 5. Communication via l'API
+Lancez l'API et envoyez votre requête comme présenté dans la [section précedente](#3-api).
 
 # Amélioration
 **TODO**  : présenter amélioration possibles
