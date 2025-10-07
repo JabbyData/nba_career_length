@@ -26,7 +26,7 @@ class DummyEstimator():
             },
         }
 
-    def cross_validate(self, X_train: np.array, y_train: np.array):
+    def cross_validate(self, X_train: np.array, y_train: np.array) -> np.float:
         splitter = StratifiedKFold(n_splits=self.cv_folds, shuffle=True, random_state=self.classifier.random_state)
         score = 0.0
         for i, (train_index, valid_index) in enumerate(splitter.split(X_train, y_train), start=1):
@@ -60,7 +60,7 @@ class DummyEstimator():
     def fit(self, X_train: np.array, y_train: np.array):
         self.classifier.fit(X_train, y_train)
 
-    def evaluate(self, X_test: np.array, y_test: np.array):
+    def evaluate(self, X_test: np.array, y_test: np.array) -> dict:
         dummy_preds = self.classifier.predict(X_test)
         cm = confusion_matrix(y_test, dummy_preds)
         precision = precision_score(y_test, dummy_preds, zero_division=0)

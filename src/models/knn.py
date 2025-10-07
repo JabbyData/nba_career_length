@@ -21,7 +21,7 @@ class KNEstimator():
         model_params = {k:v for k,v in params.items() if k not in ["cv_folds","beta","scaler","seed","pca","pca_level","scaler_type"]}
         self.classifier = KNeighborsClassifier(**model_params)
 
-    def cross_validate(self, X_train: np.array, y_train: np.array):
+    def cross_validate(self, X_train: np.array, y_train: np.array) -> np.float:
         splitter = StratifiedKFold(n_splits=self.cv_folds, shuffle=True, random_state=self.seed)
         score = 0.0
         self.cv_scores = {
@@ -76,7 +76,7 @@ class KNEstimator():
             X_train = self.pca.fit_transform(X_train)
         self.classifier.fit(X_train, y_train)
 
-    def evaluate(self, X_test: np.array, y_test: np.array):
+    def evaluate(self, X_test: np.array, y_test: np.array) -> dict:
         X_test = self.scaler.transform(X_test)
         if self.pca is not None:
             X_test = self.pca.transform(X_test)

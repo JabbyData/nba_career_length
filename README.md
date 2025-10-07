@@ -2,7 +2,7 @@
 Voici mon rapport sur le Test technique Data Scientist Junior chez MP Data. <br>
 
 # Intro
-Ce répertoire détaille mon analyse complète sur le sujet suivant : développer et déployer un **classifieur** afin de prédire si un jeune athlète de NBA va voir se carrière durer plus de 5 ans au vu de ces statistiques sportives. <br>
+Ce répertoire détaille mon analyse complète sur le sujet suivant : développer et déployer un **classifieur** afin de prédire si un jeune athlète de NBA va voir sa carrière durer plus de 5 ans au vu de ses statistiques sportives. <br>
 
 Mon rendu s'organise de la façon suivante : 
 ## Table des matières
@@ -114,22 +114,22 @@ curl -X 'POST' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
-  "gp": 0,
-  "min": 0,
-  "pts": 0,
-  "fga": 0,
-  "fg_percent": 0,
-  "three_pa": 0,
-  "three_p_percent": 0,
-  "fta": 0,
-  "ft_percent": 0,
-  "oreb": 0,
-  "reb": 0,
-  "ast": 0,
-  "stl": 0,
-  "blk": 0,
-  "tov": 0
-}' # Remplacer les '0' par les valeurs souhaitées.
+  "gp": 70,
+  "min": 32.5,
+  "pts": 20.1,
+  "fga": 15.3,
+  "fg_percent": 48.5,
+  "three_pa": 6.2,
+  "three_p_percent": 37.2,
+  "fta": 5.1,
+  "ft_percent": 85,
+  "oreb": 1.8,
+  "reb": 7.5,
+  "ast": 5.3,
+  "stl": 1.2,
+  "blk": 0.5,
+  "tov": 2.1
+}' # Send user request to local server
 ```
 
 Voici la signification de chaque clé attendue dans la requête JSON pour la prédiction (Les valeurs sont en moyenne par match, à l'exception de `gp` qui comptabilise le nombre total de matchs joués) :
@@ -150,19 +150,36 @@ Voici la signification de chaque clé attendue dans la requête JSON pour la pr�
 - **blk** : Contres (Blocks)
 - **tov** : Balles perdues (Turnovers)
 
+L'API vérifiera en particulier la cohérence des valeurs rentrées (ex. pourcentage entre 0 et 100, stats positives ...) et retourne un code d'erreur en cas de problème (fichier non existant, valeur incohérente ...). Sinon la requête est exécutée et le serveur renvoie un message indiquant la décision de l'algorithme et les probabilités associées à ce choix. Exemple : 
+```shell
+{
+  "prediction": "Career >= 5Yrs",
+  "prediction_probability": {
+    "Career < 5Yrs": 0.12165948414701255,
+    "Career >= 5Yrs": 0.8783405158529874
+  }
+}
+```
+
 # Utilisation
 Le projet est prêt pour prouver son fonctionnement (modèle déjà choisi,entraîné, ...). <br>
 Cette section détaille un cas d'utilisation de ce répertoire (pour le dataset fourni avec le sujet) si l'utilisateur souhaite rentrer plus en détail dans la construction du modèle: <br>
+### 0. Pytest
+Le fichier [unit_test.py](src/pytest/unit_test.py) teste les functionnalités des principales fonctions utilisées lors de l'analyse / entraînement du modèle. Le lancer permet de s'assurer du bon fonctionnement du traitement des données.
 ### 1. Analyse des données
 Lancer le jupyter notebook [analysis.ipynb](src/analysis.ipynb) afin de traiter le dataset en entrée et générer les 2 nouveaux datasets associés (filtrés et/ou cappés).
 ### 2. Analyse des composantes principales
 Lancer le jupyter notebook [pca.ipynb](src/pca.ipynb) afin d'analyser les variables à intégrer ou non dans la pipeline.
 ### 3. Fine-tuning
-Les fichiers [knn.ipynb](src/knn.ipynb), [logreg.ipynb](src/logreg.ipynb), [svc.ipynb](src/svc.ipynb) et [random_forest.ipynb](src/random_forest.ipynb) sont à lancer afin de sélectionner les meilleur configurations et à comparer **ensuite** à l'aide du fichier [comparison.ipynb](src/comparison.ipynb).
+Les fichiers [knn.ipynb](src/knn.ipynb), [logreg.ipynb](src/logreg.ipynb), [svc.ipynb](src/svc.ipynb) et [random_forest.ipynb](src/random_forest.ipynb) sont à lancer afin de sélectionner les meilleurs configurations et à comparer **ensuite** à l'aide du fichier [comparison.ipynb](src/comparison.ipynb).
 ### 4. Training / Testing
-Exécuter le script [train.py](src/train.py) (penser à adapter le fichier [run_configs](src/run_configs.json) en fonction du modèle choisi) afin d'entraîner l'algorithm sélectionné. Le fichier [test.py](src/test.py) peut également être lancé pour en tester les performances.
+Exécuter le script [train.py](src/train.py) (penser à adapter le fichier [run_configs](src/run_configs.json) en fonction du modèle choisi) afin d'entraîner l'algorithme sélectionné. Le fichier [test.py](src/test.py) peut également être lancé pour en tester les performances.
 ### 5. Communication via l'API
 Lancez l'API et envoyez votre requête comme présenté dans la [section précedente](#3-api).
 
 # Amélioration
-**TODO**  : présenter amélioration possibles
+La version présentée ci-dessus est une ébauche d'un projet data associé au problème traité. Au vu des contraintes temporelles et matérielles, de nombreuses voies pouvant mener à une solution encore plus efficace n'ont pas été explorées : <br>
+1. J'ai tout d'abord implémenté des **classes spécifiques** pour répondre aux attentes d'OPTUNA (ex. méthode de cross validation) et utilisé des modèles **scikit-learn** en production une fois le fine-tuning fait (solution plus lisible / efficace / résiliente), il serait tout d'abord intéressant de standardiser ces approches sous le développement d'une pipeline unique. <br>
+2. Au vu du peu d'amélioration apporté par le **capping**, j'ai choisi de retirer les labels associés, principalement car il se combinaient mal avec l'**analyse de composantes principales**. Se faisant de l'information est perdue, il semble important de trouver une solution intégrant ces labels pour encore plus de performances dans les modèles. <br>
+3. La **PCA** a été mon axe de focalisation prioritaire dans le développement de **features non corrélées** (sans perdre trop d'information). Cependant cette technique s'aligne mal avec l'information donnée par le capping. Une autre approche serait de créer de nouvelles variables (ex. pourcentage de rebonds offensifs) qui réduisent cette corrélation tout en se comparant plus facilement aux labels de capping. <br>
+4. Le modèle finalement selectionné utilise une **régularisation L1**. En particulier le détail des coefficients montre que certains semblent plus importants que d'autres, une amélioration possible serait de supprimer les variables associées à des coefficients trop faibles. Cependant le modèle créé est déjà suffisament performant par rapport aux autres modèles étudiés pour prouver que la validité de la stratégie. <br>

@@ -38,7 +38,21 @@ def handle_missing_vals(df: pd.DataFrame) -> pd.DataFrame:
             raise NotImplementedError(f"Missing values for {null_column} is not supported")
     return df
 
-def cap_outliers(df: pd.DataFrame, target) -> pd.DataFrame:
+def cap_outliers(df: pd.DataFrame, target: str) -> pd.DataFrame:
+    """
+    Caps outliers in the numeric columns of a DataFrame using the IQR method, excluding the target column.
+    For each numeric column (excluding the specified target), values below the lower bound (Q1 - 1.5 * IQR)
+    and above the upper bound (Q3 + 1.5 * IQR) are capped to the respective bounds. 
+    Additionally, a new binary column is created for each numeric column, indicating whether the original value was capped
+    (1 if capped, 0 otherwise).
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data.
+        target: The name of the target column to exclude from outlier capping.
+    Returns:
+        pd.DataFrame: The DataFrame with outliers capped in numeric columns and additional indicator columns
+        for capped values.
+    """
+
     numeric_cols = df.select_dtypes(include=[int, float]).columns.difference([target])
 
     for col in numeric_cols:
@@ -54,6 +68,20 @@ def cap_outliers(df: pd.DataFrame, target) -> pd.DataFrame:
     return df
 
 def handle_duplicates(df: pd.DataFrame, target: str):
+    """
+    Removes exact and quasi-duplicates from a DataFrame based on all columns except the target.
+    This function first removes exact duplicate rows from the DataFrame. Then, it identifies and removes "quasi-duplicates", 
+    which are rows that are duplicated across all columns except the specified target column. The function prints the number 
+    of duplicates and quasi-duplicates removed, and asserts that no such duplicates remain.
+    Args:
+        df (pd.DataFrame): The input DataFrame to process.
+        target (str): The name of the target column to exclude when checking for quasi-duplicates.
+    Returns:
+        pd.DataFrame: The DataFrame with duplicates and quasi-duplicates removed.
+    Raises:
+        AssertionError: If any duplicates or quasi-duplicates remain after processing.
+    """
+
     l1 = len(df)
     df = df.drop_duplicates()
     l2 = len(df)
@@ -68,6 +96,18 @@ def handle_duplicates(df: pd.DataFrame, target: str):
     return df
 
 def preprocess(df: pd.DataFrame, drop_col: List[str], target: str, mode: str) -> pd.DataFrame:
+    """
+    Preprocesses the input DataFrame by performing a series of data cleaning steps.
+    Parameters:
+        df (pd.DataFrame): The input DataFrame to preprocess.
+        drop_col (List[str]): List of column names to drop from the DataFrame.
+        target (str): The name of the target column, used for duplicate and outlier handling.
+        mode (str): The preprocessing mode. If set to "cap", outliers will be capped.
+    Returns:
+        pd.DataFrame: The preprocessed DataFrame after dropping columns, handling missing values,
+                      removing duplicates, and optionally capping outliers.
+    """
+
     # Dropping irrelevant feature
     df = df.drop(columns=drop_col)
 

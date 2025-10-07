@@ -2,8 +2,8 @@
 Module implementing API predicting if player worth investing
 """
 # Dependencies
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, status, HTTPException
+from pydantic import BaseModel, Field
 import joblib
 import numpy as np
 import os
@@ -12,28 +12,63 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__))) # adding working directory to python path
 
 class PlayerStats(BaseModel):
-    gp: int
-    min: float
-    pts: float
-    fga: float
-    fg_percent: float
-    three_pa: float
-    three_p_percent: float
-    fta: float
-    ft_percent: float
-    oreb: float
-    reb: float
-    ast: float
-    stl: float
-    blk: float
-    tov: float
+    gp: int = Field(..., description="Games played", example=70) # required field
+    min: float = Field(..., description="Minutes played per game", example=32.5)
+    pts: float = Field(..., description="Points per game", example=20.1)
+    fga: float = Field(..., description="Field goals attempted per game", example=15.3)
+    fg_percent: float = Field(..., description="Field goal percentage (0-100)", example=48.5)
+    three_pa: float = Field(..., description="Three-pointers attempted per game", example=6.2)
+    three_p_percent: float = Field(..., description="Three-point percentage (0-100)", example=37.2)
+    fta: float = Field(..., description="Free throws attempted per game", example=5.1)
+    ft_percent: float = Field(..., description="Free throw percentage (0-100)", example=85.0)
+    oreb: float = Field(..., description="Offensive rebounds per game", example=1.8)
+    reb: float = Field(..., description="Total rebounds per game", example=7.5)
+    ast: float = Field(..., description="Assists per game", example=5.3)
+    stl: float = Field(..., description="Steals per game", example=1.2)
+    blk: float = Field(..., description="Blocks per game", example=0.5)
+    tov: float = Field(..., description="Turnovers per game", example=2.1)
 
 app = FastAPI()
 
 path_run_configs = os.path.join("src","run_configs.json")
 
-@app.post("/predict/")
+@app.post(
+        "/predict/",
+        summary="Predict NBA Player Career Length",
+        response_description="Prediction of whether the player's career will last at least 5 years, with probabilities.",
+        responses={
+            status.HTTP_200_OK: {
+                "description": "Successful prediction",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "prediction": "Career >= 5Yrs",
+                            "prediction_probability": {
+                                "Career < 5Yrs": 0.25,
+                                "Career >= 5Yrs": 0.75
+                            }
+                        }
+                    }
+                }
+            },
+            status.HTTP_422_UNPROCESSABLE_ENTITY: {
+                "description": "Validation error (e.g., negative value, invalid percentage, or offensive rebounds > total rebounds)"
+            }
+        }
+)
 async def predict(player_stats: PlayerStats):
+    """
+    Predicts the career longevity of a basketball player based on their statistics.
+    Args:
+        player_stats (PlayerStats): An object containing the player's season statistics.
+    Returns:
+        dict: A dictionary with the predicted career category ("Career < 5Yrs" or "Career >= 5Yrs") and the associated probabilities for each category.
+    Raises:
+        AssertionError: If any input value is negative, if percentage values exceed 100, or if offensive rebounds exceed total rebounds.
+    Notes:
+        - The function loads a pre-trained model pipeline to make predictions.
+        - Input statistics are validated for coherency before prediction.
+    """
 
     # Load stats
     stats_dict = player_stats.model_dump()
@@ -57,20 +92,44 @@ async def predict(player_stats: PlayerStats):
 
     # Values coherency
     for key, value in stats_dict.items():
-        assert value >= 0, f"Negative value for {key}: {value}"
-    
-    for key in ["fg_percent","three_p_percent","ft_percent"]:
-        assert stats_dict[key] <= 100, f"Incoherent percentage value for {key}: {value}"
-    
+        if value < 0:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Negative value for {key}: {value}"
+            )
 
-    assert stats_dict['oreb'] <= stats_dict['reb'], "More offensive rebounds {} than total rebounds {}".format(stats_dict['oreb'],stats_dict['reb'])
+    for key in ["fg_percent", "three_p_percent", "ft_percent"]:
+        if stats_dict[key] > 100:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Incoherent percentage value for {key}: {stats_dict[key]}"
+            )
+
+    if stats_dict['oreb'] > stats_dict['reb']:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"More offensive rebounds ({stats_dict['oreb']}) than total rebounds ({stats_dict['reb']})"
+        )
 
     # Load model
-    with open(path_run_configs) as f:
-        run_configs = json.load(f)["test"]
-        weights_path = os.path.join(run_configs["weights_folder_path"],run_configs["model_name"]+".joblib")
-        pipeline = joblib.load(weights_path)
+    try:
+        with open(path_run_configs) as f:
+            run_configs = json.load(f)["test"]
+            weights_path = os.path.join(run_configs["weights_folder_path"], run_configs["model_name"] + ".joblib")
+            pipeline = joblib.load(weights_path)
+    
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Model configuration or weights file not found."
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error loading model: {str(e)}"
+        )
 
+    # Prediction
     prediction = pipeline.predict(features)
     prediction_proba = pipeline.predict_proba(features)
 
