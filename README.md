@@ -30,7 +30,7 @@ où $\beta =0.5 < 1$, donnant 2 fois d'importance à la précision qu'au rappel.
 Mon analyse simule également les 2 contraintes suivantes : <br>
 a) **Les données sources** : Les seules données accessibles sont les données présentes dans le fichier csv associé au test. Je suppose que celles ci ont été extraites sur ce [site](https://www.basketball-reference.com/). <br>
 b) **L'environnement de développement** : Les ressources physiques se limitent au capacités de calcul d'un ordinateur de bureau personnel (processeur AMD Ryzen 9900, 32Gb de RAM et GPU GeForce RTX 5060Ti). <br>
-Voici un exemple de comment créer un environnement virtuel pour ce projet en utilisant `miniconda` (Linux) : 
+Voici un exemple de comment créer un environnement virtuel pour ce projet en utilisant [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install) (Linux) : 
 ```shell
 conda create -n nba python=3.11
 conda activate nba
