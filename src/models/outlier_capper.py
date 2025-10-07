@@ -28,7 +28,7 @@ class Capper(BaseEstimator):
     def __init__(self, factor: float = 1.5):
         self.factor = factor
 
-    def fit(self, X: np.array, y=None):
+    def fit(self, X: np.array, y=None) -> BaseEstimator:
         q1 = np.percentile(X, 25, axis=0)
         q3 = np.percentile(X, 75, axis=0)
         iqr = q3 - q1

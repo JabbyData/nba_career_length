@@ -22,7 +22,7 @@ class LREstimator():
         model_params = {k:v for k,v in params.items() if k not in ["cv_folds","beta","scaler","pca","scaler_type","pca_level","model","n_trials","c_min","c_max","cap_factor"]}
         self.classifier = LogisticRegression(**model_params)
 
-    def cross_validate(self, X_train: np.array, y_train: np.array) -> np.float:
+    def cross_validate(self, X_train: np.array, y_train: np.array) -> float:
         splitter = StratifiedKFold(n_splits=self.cv_folds, shuffle=True, random_state=self.classifier.random_state)
         score = 0.0
         self.cv_scores = {

@@ -26,7 +26,7 @@ class DummyEstimator():
             },
         }
 
-    def cross_validate(self, X_train: np.array, y_train: np.array) -> np.float:
+    def cross_validate(self, X_train: np.array, y_train: np.array) -> float:
         splitter = StratifiedKFold(n_splits=self.cv_folds, shuffle=True, random_state=self.classifier.random_state)
         score = 0.0
         for i, (train_index, valid_index) in enumerate(splitter.split(X_train, y_train), start=1):

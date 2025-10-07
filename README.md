@@ -48,7 +48,7 @@ Suivant cette logique, le contenu du rapport s'oriente vers une **PoC** du class
 **Note** : Les commentaires effectués dans les notebooks sont en anglais, afin de conserver de la cohérence avec la manière dont le code est écrit (en anglais lui aussi).
 
 # EDA
-Le dataset étudié est **petit** (~1340 observations) et **bruité** (présence de redondances, de valeurs aberrantes, etc.). Les fichiers [analysis.ipynb](analysis.ipynb) et [pca.ipynb](pca.ipynb) contiennent une étude détaillée de la sélection des informations essentielles à l'entrainement des modèles. <br>
+Le dataset étudié est **petit** (~1340 observations) et **bruité** (présence de redondances, de valeurs aberrantes, etc.). Les fichiers [analysis.ipynb](src/analysis.ipynb) et [pca.ipynb](src/pca.ipynb) contiennent une étude détaillée de la sélection des informations essentielles à l'entrainement des modèles. <br>
 Les principales étapes sont : <br>
 1. **Nettoyage des données** : Suppression des doublons, gestion des valeurs manquantes et correction des incohérences.
 2. **Analyse univariée** : Étude des distributions de chaque variable (statistiques descriptives, histogrammes).
