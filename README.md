@@ -1,6 +1,3 @@
-# MP DATA INTERVIEW
-Voici mon rapport sur le Test technique Data Scientist Junior chez MP Data. <br>
-
 # Intro
 Ce répertoire détaille mon analyse complète sur le sujet suivant : développer et déployer un **classifieur** afin de prédire si un jeune athlète de NBA va voir sa carrière durer plus de 5 ans au vu de ses statistiques sportives. <br>
 
