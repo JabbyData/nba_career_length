@@ -12,21 +12,21 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__))) # adding working directory to python path
 
 class PlayerStats(BaseModel):
-    gp: int = Field(..., description="Games played", example=70) # required field
-    min: float = Field(..., description="Minutes played per game", example=32.5)
-    pts: float = Field(..., description="Points per game", example=20.1)
-    fga: float = Field(..., description="Field goals attempted per game", example=15.3)
-    fg_percent: float = Field(..., description="Field goal percentage (0-100)", example=48.5)
-    three_pa: float = Field(..., description="Three-pointers attempted per game", example=6.2)
-    three_p_percent: float = Field(..., description="Three-point percentage (0-100)", example=37.2)
-    fta: float = Field(..., description="Free throws attempted per game", example=5.1)
-    ft_percent: float = Field(..., description="Free throw percentage (0-100)", example=85.0)
-    oreb: float = Field(..., description="Offensive rebounds per game", example=1.8)
-    reb: float = Field(..., description="Total rebounds per game", example=7.5)
-    ast: float = Field(..., description="Assists per game", example=5.3)
-    stl: float = Field(..., description="Steals per game", example=1.2)
-    blk: float = Field(..., description="Blocks per game", example=0.5)
-    tov: float = Field(..., description="Turnovers per game", example=2.1)
+    gp: int = Field(..., ge=0, description="Games played", example=70)
+    min: float = Field(..., ge=0, description="Minutes played per game", example=32.5)
+    pts: float = Field(..., ge=0, description="Points per game", example=20.1)
+    fga: float = Field(..., ge=0, description="Field goals attempted per game", example=15.3)
+    fg_percent: float = Field(..., ge=0,le=100, description="Field goal percentage (0-100)", example=48.5)
+    three_pa: float = Field(..., ge=0, description="Three-pointers attempted per game", example=6.2)
+    three_p_percent: float = Field(..., ge=0, le=100, description="Three-point percentage (0-100)", example=37.2)
+    fta: float = Field(..., ge=0, description="Free throws attempted per game", example=5.1)
+    ft_percent: float = Field(..., ge=0, le=100, description="Free throw percentage (0-100)", example=85.0)
+    oreb: float = Field(..., ge=0, description="Offensive rebounds per game", example=1.8)
+    reb: float = Field(..., ge=0, description="Total rebounds per game", example=7.5)
+    ast: float = Field(..., ge=0, description="Assists per game", example=5.3)
+    stl: float = Field(..., ge=0, description="Steals per game", example=1.2)
+    blk: float = Field(..., ge=0, description="Blocks per game", example=0.5)
+    tov: float = Field(..., ge=0, description="Turnovers per game", example=2.1)
 
 app = FastAPI()
 
@@ -89,21 +89,6 @@ async def predict(player_stats: PlayerStats):
         stats_dict['blk'],
         stats_dict['tov']
     ]).reshape(1, -1)
-
-    # Values coherency
-    for key, value in stats_dict.items():
-        if value < 0:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Negative value for {key}: {value}"
-            )
-
-    for key in ["fg_percent", "three_p_percent", "ft_percent"]:
-        if stats_dict[key] > 100:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Incoherent percentage value for {key}: {stats_dict[key]}"
-            )
 
     if stats_dict['oreb'] > stats_dict['reb']:
         raise HTTPException(
