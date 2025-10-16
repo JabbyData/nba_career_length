@@ -25,19 +25,16 @@ import joblib
 def main(run_config_path: str, model_config_folder_path: str, model_name: str):
     # Parse arguments
     with open(run_config_path) as f:
-        args = json.load(f)["train"]
+        args = json.load(f)
 
     df = pd.read_csv(args["train_data_path"])
 
     target = args ["target"]
 
-    # Remove irrelevant column
     df = df.drop(columns=args["drop_col"])
 
-    # Handling missing values
     df = handle_missing_vals(df)
 
-    # Remove normal / quasi duplicates
     df = handle_duplicates(df, target)
 
     # Train model using json best params 
@@ -84,18 +81,6 @@ def main(run_config_path: str, model_config_folder_path: str, model_name: str):
     model_path = os.path.join(weights_folder_path, model_name + ".joblib")
     joblib.dump(pipeline, model_path)  # Joblib good format to save sklearn pipeline
     print(f"Model pipeline saved to {model_path}")
-
-    # Save test configs
-    run_configs_test = args
-    run_configs_test["model_name"] = model_name
-    
-    run_configs = {
-        "train": args,
-        "test": run_configs_test,
-    }
-
-    with open(run_config_path, "w") as f:
-        json.dump(run_configs, f, indent=4)
 
 
 if __name__=="__main__":

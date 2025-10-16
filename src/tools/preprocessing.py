@@ -111,14 +111,11 @@ def preprocess(df: pd.DataFrame, drop_col: List[str], target: str, mode: str) ->
     # Dropping irrelevant feature
     df = df.drop(columns=drop_col)
 
-    # Handling missing values
     df = handle_missing_vals(df)
 
-    # Remove normal / quasi duplicates
     df = handle_duplicates(df, target)
 
     if mode == "cap":
-        # Cap outliers
         df = cap_outliers(df,target)
     
     return df

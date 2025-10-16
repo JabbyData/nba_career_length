@@ -65,7 +65,7 @@ def score_classifier(dataset: np.array, classifier: Pipeline, labels: np.array, 
 if __name__=="__main__":
     run_config_path = os.path.join(os.getcwd(),"src","run_configs.json")
     with open(run_config_path) as f:
-        args = json.load(f)["test"]
+        args = json.load(f)
     
     df = pd.read_csv(args["train_data_path"])
 
@@ -106,5 +106,5 @@ if __name__=="__main__":
         ["True", round(cm[1][0],2), round(cm[1][1],2)]
     ]
     print("\nConfusion Matrix (average):")
-    print(tabulate(cm_table, headers=["", "False", "True"]))
+    print(tabulate(cm_table, headers=["Real/Pred", "False", "True"]))
 
